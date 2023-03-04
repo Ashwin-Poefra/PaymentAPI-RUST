@@ -1,6 +1,6 @@
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct MessageResponse {
+pub struct ResponseWrapper {
     pub message: String,
 }

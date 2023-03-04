@@ -1,31 +1,40 @@
 use std::collections::HashMap;
 
-use actix_web::web;
+use actix_web::{web, HttpResponse};
 
 use aws_sdk_dynamodb::model::AttributeValue;
 use serde::Deserialize;
+use validator::Validate;
 
-use crate::models::common::MessageResponse;
+use crate::models::common::ResponseWrapper;
 use crate::models::payment::Payment;
-use crate::utils::db;
+use crate::pkg::db;
 
 pub fn endpoints(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::resource("/payments")
+        web::resource("")
             .route(web::get().to(get_payments))
             .route(web::post().to(post_payment)),
     );
 }
 
 async fn post_payment(
-    mut payment: web::Json<Payment>,
-) -> Result<web::Json<MessageResponse>, Box<dyn std::error::Error>> {
+    payment: web::Json<Payment>,
+) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    match payment.validate() {
+        Ok(_) => (),
+        Err(e) => return Err(e.into()),
+    };
+
     let client = db::CLIENT.get().await;
 
-    payment.pk = Some(format!("uid#{}", payment.uid));
-    payment.sk = Some(format!("cardno#{}", payment.card.number));
+    let pk: AttributeValue = AttributeValue::S(format!("uid#{}", payment.uid));
+    let sk: AttributeValue = AttributeValue::S(format!("cardno#{}", payment.card.number));
 
-    let item: HashMap<String, AttributeValue> = serde_dynamo::to_item(payment)?;
+    let mut item: HashMap<String, AttributeValue> = serde_dynamo::to_item(payment)?;
+
+    item.insert(String::from("pk"), pk);
+    item.insert(String::from("sk"), sk);
 
     client
         .put_item()
@@ -34,9 +43,9 @@ async fn post_payment(
         .send()
         .await?;
 
-    return Ok(web::Json(MessageResponse {
-        message: format!("success"),
-    }));
+    return Ok(HttpResponse::Created().json(web::Json(ResponseWrapper {
+        message: String::from("success"),
+    })));
 }
 
 #[derive(Deserialize)]

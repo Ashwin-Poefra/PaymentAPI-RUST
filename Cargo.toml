@@ -18,3 +18,5 @@ serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+0_24"] }
 dotenv = "0.15.0"
 async_once = "0.2.6"
 lazy_static = "1.4.0"
+derive_more = "0.99.17"
+validator = { version = "0.15", features = ["derive", "card"] }

@@ -1,26 +1,26 @@
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Payment {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    pub pk: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(default)]
-    pub sk: Option<String>,
     pub uid: String,
+    #[validate]
     pub card: Card,
+    #[validate]
     pub address: Address,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Card {
+    #[validate(credit_card)]
     pub number: String,
+    #[validate(length(min = 3, max = 4))]
     pub cvv: Option<String>,
+    #[validate(length(equal = 4))]
     pub expiration: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Address {
     pub line_1: String,
     pub line_2: Option<String>,

@@ -1,1 +1,1 @@
-pub mod payment;
+pub mod payments;

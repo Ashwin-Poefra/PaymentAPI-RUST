@@ -12,7 +12,7 @@ lazy_static! {
 pub async fn make_client() -> Result<Client, Error> {
     let config = make_config(None).await?;
     let dynamodb_config = aws_sdk_dynamodb::config::Builder::from(&config)
-        .endpoint_url("http://localhost:8000")
+        .endpoint_url(std::env::var("DYNAMODB_ENDPOINT").unwrap_or("".to_string()))
         .build();
 
     let client = Client::from_conf(dynamodb_config);
@@ -22,7 +22,7 @@ pub async fn make_client() -> Result<Client, Error> {
 fn make_region_provider(region: Option<String>) -> RegionProviderChain {
     RegionProviderChain::first_try(region.map(Region::new))
         .or_default_provider()
-        .or_else(Region::new("us-west-2"))
+        .or_else(Region::new(std::env::var("AWS_DEFAULT_REGION").unwrap_or("".to_string())))
 }
 
 async fn make_config(region: Option<String>) -> Result<SdkConfig, Error> {
