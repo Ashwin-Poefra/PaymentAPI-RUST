@@ -1,35 +1,29 @@
-use actix_web::{error, middleware::Logger, web, App, HttpResponse, HttpServer};
+use axum::{
+    routing::{get, post},
+    Router,
+};
+use lambda_http::Error;
 
+mod config;
 mod errors;
 mod models;
 mod pkg;
 mod routes;
-mod utils;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> Result<(), Error> {
     dotenv::dotenv().ok();
 
-    lazy_static::initialize(&pkg::db::CLIENT);
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .with_target(false)
+        .with_ansi(false)
+        .without_time()
+        .init();
 
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    let app = Router::new()
+        .route("/default/wallet", get(routes::payments::get_payments))
+        .route("/default/wallet", post(routes::payments::post_payment));
 
-    HttpServer::new(|| {
-        App::new()
-            .service(web::scope("/payments").configure(routes::payments::endpoints))
-            .app_data(web::JsonConfig::default().error_handler(|err, _| {
-                error::InternalError::from_response(
-                    err,
-                    HttpResponse::BadRequest().json(errors::ErrorWrapper {
-                        status: 400,
-                        message: String::from("Bad Request"),
-                    }),
-                )
-                .into()
-            }))
-            .wrap(Logger::default())
-    })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    lambda_http::run(app).await
 }
