@@ -1,13 +1,13 @@
 use axum::Json;
 
-use crate::{config, errors::Error, models::publickey::PublicKey, pkg::keys};
+use crate::{config, errors::Error, models::publickey::PublicKey, pkg::keyvault};
 
 pub async fn get_publickey() -> Result<Json<PublicKey>, Error> {
-    let client = keys::CLIENT.get().await;
+    let client = keyvault::CLIENT.get().await;
 
     match client
         .get_public_key()
-        .key_id(config::keys::RSA_KEY_ID.clone())
+        .key_id(config::keyvault::RSA_KEY_ID.clone())
         .send()
         .await
     {

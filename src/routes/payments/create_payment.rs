@@ -9,20 +9,20 @@ use validator::Validate;
 
 use crate::config;
 use crate::models::payment::{EncryptedPayload, MaskedCard, Payment};
-use crate::pkg::{db, keys};
+use crate::pkg::{db, keyvault};
 use crate::utils::payment::mask_payment_card;
 use crate::{errors::Error, models::common::ResponseWrapper};
 
 pub async fn method(
     extract::Json(payload): extract::Json<EncryptedPayload>,
 ) -> Result<Json<ResponseWrapper>, Error> {
-    let client = keys::CLIENT.get().await;
+    let client = keyvault::CLIENT.get().await;
 
     let cipher = base64::decode(payload.encrypted.clone()).unwrap();
 
     let result = client
         .decrypt()
-        .key_id(config::keys::RSA_KEY_ID.clone())
+        .key_id(config::keyvault::RSA_KEY_ID.clone())
         .encryption_algorithm(EncryptionAlgorithmSpec::RsaesOaepSha256)
         .ciphertext_blob(Blob::new(cipher))
         .send()

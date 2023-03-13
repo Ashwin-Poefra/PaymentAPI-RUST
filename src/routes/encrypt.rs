@@ -1,18 +1,18 @@
 use aws_sdk_kms::{types::Blob, model::EncryptionAlgorithmSpec};
 use axum::{Json, extract};
 
-use crate::{config, errors::Error, models::{payment::{Payment, EncryptedPayload}}, pkg::keys};
+use crate::{config, errors::Error, models::{payment::{Payment, EncryptedPayload}}, pkg::keyvault};
 
 pub async fn post_encrypt(
     extract::Json(payment): extract::Json<Payment>,
 ) -> Result<Json<EncryptedPayload>, Error> {
-    let client = keys::CLIENT.get().await;
+    let client = keyvault::CLIENT.get().await;
 
     let json_string = serde_json::to_string(&payment).unwrap();
 
     match client
         .encrypt()
-        .key_id(config::keys::RSA_KEY_ID.clone())
+        .key_id(config::keyvault::RSA_KEY_ID.clone())
         .encryption_algorithm(EncryptionAlgorithmSpec::RsaesOaepSha256)
         .plaintext(Blob::new(json_string.as_bytes().to_vec()))
         .send()

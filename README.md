@@ -6,6 +6,15 @@ The following is a Rust Axum Api using Lambda with Api Gateway Proxy integration
 1. `Rust` (https://www.rust-lang.org/learn/get-started).
 2. `Cargo Lambda` (https://www.cargo-lambda.info/guide/getting-started.html).
 
+### Required Environment Variables
+- PAYMENTS_TABLE_NAME
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_DEFAULT_REGION
+- DYNAMODB_ENDPOINT
+- KMS_ENDPOINT
+- KMS_RSA_KEY_ID
+
 ### Running Locally
 1. Run `cargo lambda watch -a 127.0.0.1 -p 8080` or `make run`.
 
