@@ -29,6 +29,10 @@ impl Error {
     pub fn bad_request() -> Self {
         Error::BadRequest(BadRequest {})
     }
+
+    pub fn internal_server_error() -> Self {
+        Error::IntervalServerError(IntervalServerError {})
+    }
 }
 
 impl IntoResponse for Error {

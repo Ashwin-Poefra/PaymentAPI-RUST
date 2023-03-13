@@ -9,6 +9,7 @@ mod errors;
 mod models;
 mod pkg;
 mod routes;
+mod utils;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -22,8 +23,10 @@ async fn main() -> Result<(), Error> {
         .init();
 
     let app = Router::new()
-        .route("/default/wallet", get(routes::payments::get_payments))
-        .route("/default/wallet", post(routes::payments::post_payment));
+        .route("/default/wallet", get(routes::payments::get_payments::method))
+        .route("/default/wallet", post(routes::payments::create_payment::method))
+        .route("/default/publickey", get(routes::publickey::get_publickey))
+        .route("/default/encrypt", post(routes::encrypt::post_encrypt));
 
     lambda_http::run(app).await
 }

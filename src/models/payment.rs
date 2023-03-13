@@ -1,14 +1,27 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
-// use axum::Json::Serialize;
+
+#[derive(Deserialize, Serialize, Validate, Clone)]
+pub struct EncryptedPayload {
+    pub encrypted: String,
+}
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Payment {
     pub uid: String,
+    pub name: String,
     #[validate]
     pub card: Card,
     #[validate]
     pub address: Address,
+}
+
+#[derive(Deserialize, Serialize, Validate, Clone)]
+pub struct MaskedCard {
+    #[validate(length(equal = 8))]
+    pub masked: String,
+    #[validate(length(equal = 4))]
+    pub expiration: String,
 }
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
