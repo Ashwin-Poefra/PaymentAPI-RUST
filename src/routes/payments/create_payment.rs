@@ -8,7 +8,8 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::config;
-use crate::models::payment::{EncryptedPayload, MaskedCard, Payment};
+use crate::models::common::EncryptedPayload;
+use crate::models::payment::{MaskedCard, Payment};
 use crate::pkg::{db, keyvault};
 use crate::utils::payment::{categorize_card_number, mask_payment_card};
 use crate::{errors::Error, models::common::ResponseWrapper};
@@ -18,7 +19,7 @@ pub async fn method(
 ) -> Result<Json<ResponseWrapper>, Error> {
     let client = keyvault::CLIENT.get().await;
 
-    let cipher = base64::decode(payload.encrypted.clone()).unwrap();
+    let cipher = base64::decode(payload.encrypted_payload.clone()).unwrap();
 
     let result = client
         .decrypt()
@@ -58,7 +59,7 @@ pub async fn method(
 
             item.insert(
                 String::from("encrypted"),
-                AttributeValue::S(payload.encrypted),
+                AttributeValue::S(payload.encrypted_payload),
             );
 
             let client = db::CLIENT.get().await;

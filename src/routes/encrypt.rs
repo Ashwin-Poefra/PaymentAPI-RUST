@@ -1,7 +1,7 @@
 use aws_sdk_kms::{model::EncryptionAlgorithmSpec, types::Blob};
 use axum::{extract, Json};
 
-use crate::{config, errors::Error, models::payment::EncryptedPayload, pkg::keyvault};
+use crate::{config, errors::Error, models::common::EncryptedPayload, pkg::keyvault};
 use serde_json::Value;
 
 pub async fn post_encrypt(
@@ -24,7 +24,7 @@ pub async fn post_encrypt(
             let bytes = blob.as_ref();
 
             return Ok(Json(EncryptedPayload {
-                encrypted: base64::encode(bytes),
+                encrypted_payload: base64::encode(bytes),
             }));
         }
         Err(error) => {

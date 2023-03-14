@@ -2,11 +2,6 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
-pub struct EncryptedPayload {
-    pub encrypted: String,
-}
-
-#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Payment {
     pub uid: String,
     pub name: String,
