@@ -1,10 +1,11 @@
-use aws_sdk_kms::{types::Blob, model::EncryptionAlgorithmSpec};
-use axum::{Json, extract};
+use aws_sdk_kms::{model::EncryptionAlgorithmSpec, types::Blob};
+use axum::{extract, Json};
 
-use crate::{config, errors::Error, models::{payment::{Payment, EncryptedPayload}}, pkg::keyvault};
+use crate::{config, errors::Error, models::payment::EncryptedPayload, pkg::keyvault};
+use serde_json::Value;
 
 pub async fn post_encrypt(
-    extract::Json(payment): extract::Json<Payment>,
+    extract::Json(payment): extract::Json<Value>,
 ) -> Result<Json<EncryptedPayload>, Error> {
     let client = keyvault::CLIENT.get().await;
 

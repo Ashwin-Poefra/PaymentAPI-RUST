@@ -18,10 +18,13 @@ pub struct Payment {
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct MaskedCard {
+    pub id: String,
+    pub name: String,
     #[validate(length(equal = 8))]
     pub masked: String,
     #[validate(length(equal = 4))]
     pub expiration: String,
+    pub scheme: String,
 }
 
 #[derive(Deserialize, Serialize, Validate, Clone)]

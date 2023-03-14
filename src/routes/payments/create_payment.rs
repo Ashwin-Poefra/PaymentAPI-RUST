@@ -10,7 +10,7 @@ use validator::Validate;
 use crate::config;
 use crate::models::payment::{EncryptedPayload, MaskedCard, Payment};
 use crate::pkg::{db, keyvault};
-use crate::utils::payment::mask_payment_card;
+use crate::utils::payment::{categorize_card_number, mask_payment_card};
 use crate::{errors::Error, models::common::ResponseWrapper};
 
 pub async fn method(
@@ -40,13 +40,17 @@ pub async fn method(
                 Err(_) => return Err(Error::bad_request()),
             };
 
+            let card_id = Uuid::new_v4();
             let masked = MaskedCard {
-                masked: mask_payment_card(payment.card.number),
+                id: card_id.to_string(),
+                name: payment.name,
                 expiration: payment.card.expiration,
+                masked: mask_payment_card(&payment.card.number),
+                scheme: categorize_card_number(&payment.card.number),
             };
 
             let pk: AttributeValue = AttributeValue::S(format!("uid#{}", payment.uid));
-            let sk: AttributeValue = AttributeValue::S(format!("card#{}", Uuid::new_v4()));
+            let sk: AttributeValue = AttributeValue::S(format!("card#{}", card_id));
 
             let mut item: HashMap<String, AttributeValue> = serde_dynamo::to_item(masked).unwrap();
             item.insert(String::from("pk"), pk);
@@ -73,6 +77,7 @@ pub async fn method(
                 message: String::from("success"),
             }));
         }
+
         Err(error) => {
             println!("{:?}", error);
             return Err(Error::bad_request());

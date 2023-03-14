@@ -2207,6 +2207,7 @@ dependencies = [
  "lambda_http",
  "lambda_runtime",
  "lazy_static",
+ "regex",
  "serde",
  "serde_dynamo",
  "serde_json",
