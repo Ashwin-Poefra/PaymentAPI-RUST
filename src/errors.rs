@@ -14,6 +14,9 @@ pub enum Error {
 
     #[error("{0}")]
     NotFound(#[from] NotFound),
+
+    #[error("{0}")]
+    Unauthorized(#[from] Unauthorized),
 }
 
 impl Error {
@@ -21,13 +24,17 @@ impl Error {
         match *self {
             Error::BadRequest(_) => (StatusCode::BAD_REQUEST, 400),
             Error::NotFound(_) => (StatusCode::NOT_FOUND, 404),
-
+            Error::Unauthorized(_) => (StatusCode::UNAUTHORIZED, 401),
             Error::IntervalServerError(_) => (StatusCode::INTERNAL_SERVER_ERROR, 500),
         }
     }
 
     pub fn bad_request() -> Self {
         Error::BadRequest(BadRequest {})
+    }
+
+    pub fn unauthorized() -> Self {
+        Error::Unauthorized(Unauthorized {})
     }
 
     pub fn internal_server_error() -> Self {
@@ -52,6 +59,10 @@ pub struct BadRequest {}
 #[derive(thiserror::Error, Debug)]
 #[error("Not found")]
 pub struct NotFound {}
+
+#[derive(thiserror::Error, Debug)]
+#[error("Unauthorized")]
+pub struct Unauthorized {}
 
 #[derive(thiserror::Error, Debug)]
 #[error("Interval Server Error")]

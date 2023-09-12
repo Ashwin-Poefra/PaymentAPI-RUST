@@ -3,7 +3,6 @@ use validator::Validate;
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct Payment {
-    pub uid: String,
     pub name: String,
     #[validate]
     pub card: Card,
@@ -15,11 +14,11 @@ pub struct Payment {
 pub struct MaskedCard {
     pub id: String,
     pub name: String,
-    #[validate(length(equal = 8))]
-    pub masked: String,
     #[validate(length(equal = 4))]
+    pub last_digits: String,
+    #[validate(length(equal = 7))]
     pub expiration: String,
-    pub scheme: String,
+    pub network: String,
 }
 
 #[derive(Deserialize, Serialize, Validate, Clone)]
@@ -28,7 +27,7 @@ pub struct Card {
     pub number: String,
     #[validate(length(min = 3, max = 4))]
     pub cvv: Option<String>,
-    #[validate(length(equal = 4))]
+    #[validate(length(equal = 7))]
     pub expiration: String,
 }
 

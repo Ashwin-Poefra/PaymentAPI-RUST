@@ -1,22 +1,29 @@
 use std::collections::HashMap;
 
-use aws_sdk_dynamodb::model::AttributeValue;
-use aws_sdk_kms::model::EncryptionAlgorithmSpec;
-use aws_sdk_kms::types::Blob;
-use axum::{extract, Json};
-use uuid::Uuid;
-use validator::Validate;
-
 use crate::config;
 use crate::models::common::EncryptedPayload;
 use crate::models::payment::{MaskedCard, Payment};
 use crate::pkg::{db, keyvault};
-use crate::utils::payment::{categorize_card_number, mask_payment_card};
+use crate::utils::authorization::authorize;
+use crate::utils::payment::{categorize_card_number, get_last_4_digits};
 use crate::{errors::Error, models::common::ResponseWrapper};
+use aws_sdk_dynamodb::model::AttributeValue;
+use aws_sdk_kms::model::EncryptionAlgorithmSpec;
+use aws_sdk_kms::types::Blob;
+use axum::http::HeaderMap;
+use axum::{extract, Json};
+use uuid::Uuid;
+use validator::Validate;
 
 pub async fn method(
+    headers: HeaderMap,
     extract::Json(payload): extract::Json<EncryptedPayload>,
 ) -> Result<Json<ResponseWrapper>, Error> {
+    let user = match authorize(headers).await {
+        Ok(user) => user,
+        Err(error) => return Err(error),
+    };
+
     let client = keyvault::CLIENT.get().await;
 
     let cipher = base64::decode(payload.encrypted_payload.clone()).unwrap();
@@ -46,11 +53,11 @@ pub async fn method(
                 id: card_id.to_string(),
                 name: payment.name,
                 expiration: payment.card.expiration,
-                masked: mask_payment_card(&payment.card.number),
-                scheme: categorize_card_number(&payment.card.number),
+                last_digits: get_last_4_digits(&payment.card.number),
+                network: categorize_card_number(&payment.card.number),
             };
 
-            let pk: AttributeValue = AttributeValue::S(format!("uid#{}", payment.uid));
+            let pk: AttributeValue = AttributeValue::S(format!("uid#{}", user.email));
             let sk: AttributeValue = AttributeValue::S(format!("card#{}", card_id));
 
             let mut item: HashMap<String, AttributeValue> = serde_dynamo::to_item(masked).unwrap();
@@ -71,7 +78,10 @@ pub async fn method(
                 .await
             {
                 Ok(_) => (),
-                Err(_) => return Err(Error::bad_request()),
+                Err(error) => {
+                    log::error!("PutItem Error: {:?}", error);
+                    return Err(Error::internal_server_error());
+                }
             };
 
             return Ok(Json(ResponseWrapper {
@@ -80,8 +90,8 @@ pub async fn method(
         }
 
         Err(error) => {
-            println!("{:?}", error);
-            return Err(Error::bad_request());
+            log::error!("Decrypt Error: {:?}", error);
+            return Err(Error::internal_server_error());
         }
     }
 }

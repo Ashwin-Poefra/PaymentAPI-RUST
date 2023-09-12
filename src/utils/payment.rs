@@ -43,8 +43,6 @@ pub fn categorize_card_number(card_number: &str) -> String {
     return String::from("unknown");
 }
 
-pub fn mask_payment_card(number: &str) -> String {
-    let suffix = number.get(number.len() - 4..).unwrap().to_owned();
-
-    return format!("****{}", suffix);
+pub fn get_last_4_digits(number: &str) -> String {
+    return number.get(number.len() - 4..).unwrap().to_owned();
 }

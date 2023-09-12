@@ -15,6 +15,8 @@ mod utils;
 async fn main() -> Result<(), Error> {
     dotenv::dotenv().ok();
 
+    env_logger::init();
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .with_target(false)
