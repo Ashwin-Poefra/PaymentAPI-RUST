@@ -3,6 +3,7 @@ use axum::{
     Router,
 };
 use lambda_http::Error;
+use tower_http::cors::CorsLayer;
 
 mod config;
 mod errors;
@@ -25,10 +26,17 @@ async fn main() -> Result<(), Error> {
         .init();
 
     let app = Router::new()
-        .route("/default/wallet", get(routes::payments::get_payments::method))
-        .route("/default/wallet", post(routes::payments::create_payment::method))
+        .route(
+            "/default/wallet",
+            get(routes::payments::get_payments::method),
+        )
+        .route(
+            "/default/wallet",
+            post(routes::payments::create_payment::method),
+        )
         .route("/default/publickey", get(routes::publickey::get_publickey))
-        .route("/default/encrypt", post(routes::encrypt::post_encrypt));
+        .route("/default/encrypt", post(routes::encrypt::post_encrypt))
+        .layer(CorsLayer::permissive());
 
     lambda_http::run(app).await
 }

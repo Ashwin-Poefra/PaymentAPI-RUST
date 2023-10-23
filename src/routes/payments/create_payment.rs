@@ -26,7 +26,10 @@ pub async fn method(
 
     let client = keyvault::CLIENT.get().await;
 
-    let cipher = base64::decode(payload.encrypted_payload.clone()).unwrap();
+    let cipher = match base64::decode(payload.encrypted_payload.clone()) {
+        Ok(result) => result,
+        Err(_) => return Err(Error::bad_request()),
+    };
 
     let result = client
         .decrypt()
@@ -41,7 +44,10 @@ pub async fn method(
             let plaintext = result.plaintext().expect("could not get plaintext");
 
             let decrypted = String::from_utf8(plaintext.as_ref().to_vec()).unwrap();
-            let payment: Payment = serde_json::from_str(&decrypted).unwrap();
+            let payment: Payment = match serde_json::from_str(&decrypted) {
+                Ok(result) => result,
+                Err(_) => return Err(Error::bad_request()),
+            };
 
             match payment.validate() {
                 Ok(_) => (),

@@ -42,11 +42,14 @@ export class ApiStack extends cdk.Stack {
         PAYMENTS_TABLE_NAME: this.table.tableName,
         KMS_ENDPOINT: "https://kms.us-east-1.amazonaws.com",
         KMS_RSA_KEY_ID: this.key.keyId,
+        GOOGLE_OAUTH_CLIENT_ID:
+          "104079326466-rqglh7msot9iphnvv3qeodqs4j29i8ld.apps.googleusercontent.com",
       },
     });
 
     this.table.grantReadWriteData(this.fn);
     this.key.grantEncryptDecrypt(this.fn);
+    this.key.grant(this.fn, 'kms:GetPublicKey')
 
     this.api = new apigwv2.HttpApi(this, "rust_payment_http_api");
     this.api.addRoutes({

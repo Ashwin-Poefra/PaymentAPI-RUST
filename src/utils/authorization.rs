@@ -2,6 +2,7 @@ use crate::{errors::Error, models::user::User};
 use axum::http::HeaderMap;
 use reqwest;
 use serde::{Deserialize, Serialize};
+use std::env::var;
 
 pub async fn authorize(headers: HeaderMap) -> Result<User, Error> {
     let token = match get_token_from_headers(headers).await {
@@ -49,6 +50,11 @@ pub async fn verify_auth_token(access_token: String) -> Result<User, Error> {
                 reqwest::StatusCode::OK => {
                     match response.json::<GoogleOAuthClaims>().await {
                         Ok(parsed) => {
+                            let client_id = var("GOOGLE_OAUTH_CLIENT_ID").unwrap_or("".to_string());
+                            if parsed.azp != client_id {
+                                return Err(Error::unauthorized());
+                            }
+
                             return Ok(User {
                                 email: parsed.email,
                                 name: parsed.name,
